@@ -19,7 +19,7 @@ void safeZone(int **copy, vector<pair<int, int>> virusArea, int n, int m) {
 		for (int j = 0; j < m; j++) {
 			virus[i][j] = copy[i][j];
 		}
-	
+
 	for (int i = 0; i < virusArea.size(); i++)
 		virusLocation.push({ virusArea[i].first, virusArea[i].second });
 
@@ -55,9 +55,41 @@ void safeZone(int **copy, vector<pair<int, int>> virusArea, int n, int m) {
 		maxCount = countOfSafeZone;
 }
 
+vector<vector<int>> getCase(int blankSize, int wallCount, vector<vector<int>> newCase) {
+	vector<vector<int>> newCases;
+
+	int caseSize = newCase.size();
+	for (int i = 0; i < caseSize; i++) {
+		for (int j = 0; j < blankSize; j++) {
+			if (find(newCase[i].begin(), newCase[i].end(), j) == newCase[i].end()) {
+				vector<int> temp (newCase[i]);
+				temp.push_back(j);
+
+				sort(temp.begin(), temp.end());
+				int flag = 0;
+
+				/*for (int k = 0; k < newCases.size(); k++) {
+					if (newCases[k] == temp) {
+						flag = 1;
+						break;
+					}
+				}
+				if(flag==0)*/
+					newCases.push_back(temp);
+			}
+		}
+	}
+	if (wallCount == 1) return newCases;
+	else return getCase(blankSize, --wallCount, newCases);
+}
+
 void makeWall(vector<pair<int, int>> blankArea, int **board, vector<pair<int, int>> virusArea, int n, int m) {
-	int size = blankArea.size();
+
+	int blankSize = blankArea.size(); 
+
 	int **copy = new int*[n];
+
+	vector<vector<int>> newCase;
 
 	for (int i = 0; i < n; i++)
 		copy[i] = new int[m];
@@ -66,30 +98,37 @@ void makeWall(vector<pair<int, int>> blankArea, int **board, vector<pair<int, in
 		for (int j = 0; j < m; j++) {
 			copy[i][j] = board[i][j];
 		}
-	
-	for (int i = 0; i < size; i++) {
-		int firstX = blankArea[i].first;
-		int firstY = blankArea[i].second;
-		copy[firstX][firstY] = 1;
 
-		for (int j = i + 1; j < size; j++) {
-			int secondX = blankArea[j].first;
-			int secondY = blankArea[j].second;
-			copy[secondX][secondY] = 1;
+	for (int i = 0; i < blankSize; i++) {
+		vector<int> temp;
+		temp.push_back(i);
+		newCase.push_back(temp);
+	}
 
-			for (int k = j + 1; k < size; k++) {
-				int thirdX = blankArea[k].first;
-				int thirdY = blankArea[k].second;
-				copy[thirdX][thirdY] = 1;
+	newCase = getCase(blankSize, 2, newCase);
 
-				safeZone(copy, virusArea, n, m);
-				copy[thirdX][thirdY] = 0;
-
-			}
-			copy[secondX][secondY] = 0;
-
+	for (int i = 0; i < newCase.size(); i++) {
+		for (int j = 0; j < 3; j++) {
+			cout << newCase[i][j] << " ";
 		}
-		copy[firstX][firstY] = 0;
+		cout << endl;
+	}
+
+	for (int i = 0; i < newCase.size(); i++) {
+		
+			int x1 = blankArea[newCase[i][0]].first;
+			int y1 = blankArea[newCase[i][0]].second;
+			int x2 = blankArea[newCase[i][1]].first;
+			int y2 = blankArea[newCase[i][1]].second;
+			int x3 = blankArea[newCase[i][2]].first;
+			int y3 = blankArea[newCase[i][2]].second;
+			copy[x1][y2] = 1;
+			copy[x2][y2] = 1;
+			copy[x3][y3] = 1;
+		safeZone(copy, virusArea, n, m);
+		copy[x1][y2] = 0;
+		copy[x2][y2] = 0;
+		copy[x3][y3] = 0;
 	}
 }
 
